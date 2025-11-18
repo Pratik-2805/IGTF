@@ -5,12 +5,12 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Search, LogOut, Filter, Plus, Edit, Trash2, X, Calendar, MapPin, Users, Building } from "lucide-react"
 
 // --- API Configuration ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const EXHIBITOR_REGISTRATION_URL = `${API_BASE_URL}/exhibitor-registrations/`
-const VISITOR_REGISTRATION_URL = `${API_BASE_URL}/visitor-registrations/`
-const EVENTS_URL = `${API_BASE_URL}/events/`
-const CATEGORIES_URL = `${API_BASE_URL}/categories/`
-const GALLERY_URL = `${API_BASE_URL}/gallery/`
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const EXHIBITOR_REGISTRATION_URL = `${BASE_URL}/exhibitor-registrations/`
+const VISITOR_REGISTRATION_URL = `${BASE_URL}/visitor-registrations/`
+const EVENTS_URL = `${BASE_URL}/events/`
+const CATEGORIES_URL = `${BASE_URL}/categories/`
+const GALLERY_URL = `${BASE_URL}/gallery/`
 
 // --- Utility Functions for API ---
 const getAuthHeaders = (): Record<string, string> => {

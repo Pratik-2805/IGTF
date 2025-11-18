@@ -294,7 +294,37 @@ export default function ExhibitionPage() {
                 <h4 className="font-serif text-xl mb-4">16 Dynamic Sectors</h4>
                 <p className="text-muted-foreground">Hardware & Tools, Toys, Chemical, Electronics...</p>
               </div>
-              {/* ... Add the rest of your cards here ... */}
+              <div className="bg-background p-8 rounded-lg shadow-lg hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <h4 className="font-serif text-xl mb-4">Global Participation</h4>
+                <p className="text-muted-foreground">
+                  Drawing exhibitors and buyers from more than 40 countries, offering opportunities for cross-border
+                  collaborations.
+                </p>
+              </div>
+
+              <div className="bg-background p-8 rounded-lg shadow-lg hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <h4 className="font-serif text-xl mb-4">Extensive B2B Focus</h4>
+                <p className="text-muted-foreground">
+                  Premier platform bringing together manufacturers, exporters, distributors, and key decision-makers for
+                  meaningful business connections.
+                </p>
+              </div>
+
+              <div className="bg-background p-8 rounded-lg shadow-lg hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <h4 className="font-serif text-xl mb-4">Hosted Buyer Program</h4>
+                <p className="text-muted-foreground">
+                  Exclusive initiative matching exhibitors with qualified buyers, ensuring focused meetings and higher
+                  conversion opportunities.
+                </p>
+              </div>
+
+              <div className="bg-background p-8 rounded-lg shadow-lg hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
+                <h4 className="font-serif text-xl mb-4">Networking Opportunities</h4>
+                <p className="text-muted-foreground">
+                  Platform for industry professionals to connect, collaborate, and grow their business through strategic
+                  partnerships.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -316,8 +346,8 @@ export default function ExhibitionPage() {
             {message && (
               <div
                 className={`mb-6 p-4 rounded-lg border ${message.type === 'success'
-                    ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200'
-                    : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200'
+                  ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200'
+                  : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200'
                   }`}
               >
                 <p className="font-medium">{message.text}</p>
@@ -465,8 +495,8 @@ export default function ExhibitionPage() {
                 type="submit"
                 disabled={isSubmitting}
                 className={`w-full px-8 py-4 rounded-md transition-all duration-500 font-medium text-lg ${isSubmitting
-                    ? 'bg-primary/50 text-primary-foreground cursor-not-allowed'
-                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  ? 'bg-primary/50 text-primary-foreground cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
                   }`}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Registration'}

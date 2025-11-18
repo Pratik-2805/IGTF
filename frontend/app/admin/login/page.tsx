@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const API_URL = `${BASE_URL}/api/token/`;
+const API_URL = `${BASE_URL}/token/`;
 
 export default function AdminLoginPage() {
   const router = useRouter();
