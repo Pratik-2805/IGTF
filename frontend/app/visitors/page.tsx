@@ -15,7 +15,8 @@ interface VisitorFormData {
 }
 
 // ✅ Use the same backend URL pattern as your working exhibitor API
-const API_URL = 'http://127.0.0.1:8000/api/visitor-registrations/'
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_URL = `${BASE_URL}/api/visitor-registrations/`;
 
 export default function VisitorsPage() {
   const [formData, setFormData] = useState<VisitorFormData>({
@@ -209,7 +210,7 @@ export default function VisitorsPage() {
         </section>
 
         {/* Registration Form */}
-        <section id="visitor-registration" className="py-20 px-4 bg-background">
+        <section id="visitor-registration" className="py-20 px-4 bg-background scroll-mt-20">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="font-serif text-4xl md:text-5xl mb-6">Register as Visitor</h2>
