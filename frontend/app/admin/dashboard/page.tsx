@@ -1,1015 +1,16 @@
-// "use client"
-
-// import { useEffect, useState } from "react"
-// import { useRouter } from "next/navigation"
-// import { Search, LogOut, Filter, Plus, Edit, Trash2, X, Calendar, MapPin } from "lucide-react"
-
-// interface Registration {
-//   id: number
-//   companyName: string
-//   contactPerson: string
-//   designation: string
-//   email: string
-//   contactNumber: string
-//   product: string
-//   address: string
-//   status: "pending" | "contacted" | "paid" | "rejected"
-//   createdAt: string
-// }
-
-// interface Event {
-//   id: number
-//   title: string
-//   location: string
-//   startDate: string
-//   endDate: string
-//   time: string
-//   exhibitors: number
-//   buyers: number
-//   countries: number
-//   sectors: number
-//   description: string
-//   isPast: boolean
-// }
-
-// interface Category {
-//   id: number
-//   name: string
-//   description: string
-//   icon: string
-// }
-
-// interface GalleryImage {
-//   id: number
-//   title: string
-//   imageUrl: string
-//   description: string
-// }
-
-// export default function AdminDashboard() {
-//   const router = useRouter()
-//   const [isAuthenticated, setIsAuthenticated] = useState(false)
-//   const [searchQuery, setSearchQuery] = useState("")
-//   const [filterStatus, setFilterStatus] = useState<string>("all")
-//   const [activeTab, setActiveTab] = useState<"registrations" | "events" | "categories" | "gallery">("registrations")
-//   const [showModal, setShowModal] = useState(false)
-//   const [editingItem, setEditingItem] = useState<any>(null)
-
-//   // Sample data - replace with your actual database
-//   const [registrations, setRegistrations] = useState<Registration[]>([
-//     {
-//       id: 1,
-//       companyName: "Tech Solutions India Pvt Ltd",
-//       contactPerson: "Rajesh Kumar",
-//       designation: "Marketing Director",
-//       email: "rajesh@techsolutions.com",
-//       contactNumber: "+91 98765 43210",
-//       product: "Electronics & Components",
-//       address: "123 Tech Park, Bangalore, Karnataka 560001",
-//       status: "paid",
-//       createdAt: "2024-12-10",
-//     },
-//     {
-//       id: 2,
-//       companyName: "Global Exports Co",
-//       contactPerson: "Priya Sharma",
-//       designation: "CEO",
-//       email: "priya@globalexports.com",
-//       contactNumber: "+91 87654 32109",
-//       product: "Toys",
-//       address: "456 Export House, Mumbai, Maharashtra 400001",
-//       status: "contacted",
-//       createdAt: "2024-12-11",
-//     },
-//     {
-//       id: 3,
-//       companyName: "Innovative Hardware Ltd",
-//       contactPerson: "Amit Patel",
-//       designation: "Sales Manager",
-//       email: "amit@innovative.com",
-//       contactNumber: "+91 76543 21098",
-//       product: "Hardware & Tools",
-//       address: "789 Industrial Area, Ahmedabad, Gujarat 380001",
-//       status: "rejected",
-//       createdAt: "2024-12-09",
-//     },
-//     {
-//       id: 4,
-//       companyName: "Prime Construction Materials",
-//       contactPerson: "Suresh Reddy",
-//       designation: "Business Development Head",
-//       email: "suresh@primeconstruction.com",
-//       contactNumber: "+91 65432 10987",
-//       product: "Construction Material",
-//       address: "321 Builder's Plaza, Hyderabad, Telangana 500001",
-//       status: "pending",
-//       createdAt: "2024-12-12",
-//     },
-//   ])
-
-//   const [events, setEvents] = useState<Event[]>([
-//     {
-//       id: 1,
-//       title: "IGTF Mumbai 2025",
-//       location: "Bombay Exhibitions Center, Mumbai, India",
-//       startDate: "2025-12-12",
-//       endDate: "2025-12-14",
-//       time: "10:00 AM - 7:00 PM",
-//       exhibitors: 400,
-//       buyers: 6000,
-//       countries: 40,
-//       sectors: 16,
-//       description: "The premier B2B trade fair in Mumbai",
-//       isPast: false,
-//     },
-//     {
-//       id: 2,
-//       title: "IGTF Dubai 2025",
-//       location: "Dubai Exhibition Center, Dubai, UAE",
-//       startDate: "2025-02-15",
-//       endDate: "2025-02-17",
-//       time: "10:00 AM - 7:00 PM",
-//       exhibitors: 400,
-//       buyers: 6000,
-//       countries: 40,
-//       sectors: 16,
-//       description: "International trade fair connecting Middle East and India",
-//       isPast: false,
-//     },
-//   ])
-
-//   const [categories, setCategories] = useState<Category[]>([
-//     { id: 1, name: "Hardware & Tools", description: "Industrial and commercial hardware", icon: "🔧" },
-//     { id: 2, name: "Toys", description: "Educational and entertainment toys", icon: "🧸" },
-//     { id: 3, name: "Electronics & Components", description: "Electronic devices and components", icon: "💻" },
-//   ])
-
-//   const [gallery, setGallery] = useState<GalleryImage[]>([
-//     {
-//       id: 1,
-//       title: "Exhibition Hall 2024",
-//       imageUrl: "/exhibition-hall.png",
-//       description: "Main exhibition hall with exhibitors",
-//     },
-//   ])
-
-//   useEffect(() => {
-//     // Check authentication
-//     const isLoggedIn = localStorage.getItem("isAdminLoggedIn")
-//     if (isLoggedIn === "true") {
-//       setIsAuthenticated(true)
-//     } else {
-//       router.push("/admin/login")
-//     }
-//   }, [router])
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("isAdminLoggedIn")
-//     router.push("/")
-//   }
-
-//   const handleStatusChange = (id: number, newStatus: Registration["status"]) => {
-//     setRegistrations((prev) => prev.map((reg) => (reg.id === id ? { ...reg, status: newStatus } : reg)))
-//   }
-
-//   const handleAddEvent = (formData: any) => {
-//     const newEvent: Event = {
-//       id: events.length + 1,
-//       ...formData,
-//       exhibitors: Number.parseInt(formData.exhibitors),
-//       buyers: Number.parseInt(formData.buyers),
-//       countries: Number.parseInt(formData.countries),
-//       sectors: Number.parseInt(formData.sectors),
-//     }
-//     setEvents([...events, newEvent])
-//     setShowModal(false)
-//   }
-
-//   const handleEditEvent = (formData: any) => {
-//     setEvents(
-//       events.map((event) =>
-//         event.id === editingItem.id
-//           ? {
-//               ...formData,
-//               id: event.id,
-//               exhibitors: Number.parseInt(formData.exhibitors),
-//               buyers: Number.parseInt(formData.buyers),
-//               countries: Number.parseInt(formData.countries),
-//               sectors: Number.parseInt(formData.sectors),
-//             }
-//           : event,
-//       ),
-//     )
-//     setShowModal(false)
-//     setEditingItem(null)
-//   }
-
-//   const handleDeleteEvent = (id: number) => {
-//     if (confirm("Are you sure you want to delete this event?")) {
-//       setEvents(events.filter((event) => event.id !== id))
-//     }
-//   }
-
-//   const handleAddCategory = (formData: any) => {
-//     const newCategory: Category = {
-//       id: categories.length + 1,
-//       ...formData,
-//     }
-//     setCategories([...categories, newCategory])
-//     setShowModal(false)
-//   }
-
-//   const handleEditCategory = (formData: any) => {
-//     setCategories(categories.map((cat) => (cat.id === editingItem.id ? { ...formData, id: cat.id } : cat)))
-//     setShowModal(false)
-//     setEditingItem(null)
-//   }
-
-//   const handleDeleteCategory = (id: number) => {
-//     if (confirm("Are you sure you want to delete this category?")) {
-//       setCategories(categories.filter((cat) => cat.id !== id))
-//     }
-//   }
-
-//   const handleAddGalleryImage = (formData: any) => {
-//     const newImage: GalleryImage = {
-//       id: gallery.length + 1,
-//       ...formData,
-//     }
-//     setGallery([...gallery, newImage])
-//     setShowModal(false)
-//   }
-
-//   const handleEditGalleryImage = (formData: any) => {
-//     setGallery(gallery.map((img) => (img.id === editingItem.id ? { ...formData, id: img.id } : img)))
-//     setShowModal(false)
-//     setEditingItem(null)
-//   }
-
-//   const handleDeleteGalleryImage = (id: number) => {
-//     if (confirm("Are you sure you want to delete this image?")) {
-//       setGallery(gallery.filter((img) => img.id !== id))
-//     }
-//   }
-
-//   const getStatusColor = (status: Registration["status"]) => {
-//     switch (status) {
-//       case "paid":
-//         return "bg-green-500/10 border-green-500 text-green-700"
-//       case "contacted":
-//         return "bg-blue-500/10 border-blue-500 text-blue-700"
-//       case "rejected":
-//         return "bg-red-500/10 border-red-500 text-red-700"
-//       case "pending":
-//         return "bg-yellow-500/10 border-yellow-500 text-yellow-700"
-//       default:
-//         return "bg-muted border-border"
-//     }
-//   }
-
-//   const getStatusBadgeColor = (status: Registration["status"]) => {
-//     switch (status) {
-//       case "paid":
-//         return "bg-green-500 text-white"
-//       case "contacted":
-//         return "bg-blue-500 text-white"
-//       case "rejected":
-//         return "bg-red-500 text-white"
-//       case "pending":
-//         return "bg-yellow-500 text-white"
-//       default:
-//         return "bg-muted text-foreground"
-//     }
-//   }
-
-//   const filteredRegistrations = registrations.filter((reg) => {
-//     const matchesSearch =
-//       reg.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       reg.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       reg.product.toLowerCase().includes(searchQuery.toLowerCase())
-
-//     const matchesFilter = filterStatus === "all" || reg.status === filterStatus
-
-//     return matchesSearch && matchesFilter
-//   })
-
-//   const stats = {
-//     total: registrations.length,
-//     paid: registrations.filter((r) => r.status === "paid").length,
-//     contacted: registrations.filter((r) => r.status === "contacted").length,
-//     pending: registrations.filter((r) => r.status === "pending").length,
-//     rejected: registrations.filter((r) => r.status === "rejected").length,
-//   }
-
-//   if (!isAuthenticated) {
-//     return null
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-background">
-//       {/* Header */}
-//       <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-40">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center gap-4">
-//               <img
-//                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Indo-Global-Trade-Fair-Logo--eqw9QSs9yPlSNoi4uIQ58jPR2grztu.webp"
-//                 alt="IGTF Logo"
-//                 className="h-12 w-auto"
-//               />
-//               <div>
-//                 <h1 className="font-serif text-2xl">Admin Dashboard</h1>
-//                 <p className="text-sm opacity-90">Indo Global Trade Fair Management</p>
-//               </div>
-//             </div>
-//             <button
-//               onClick={handleLogout}
-//               className="flex items-center gap-2 bg-primary-foreground text-primary px-4 py-2 rounded-md hover:opacity-90 transition-all duration-500 font-medium"
-//             >
-//               <LogOut className="w-4 h-4" />
-//               Logout
-//             </button>
-//           </div>
-//         </div>
-
-//         <div className="border-t border-primary-foreground/20">
-//           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//             <div className="flex gap-1">
-//               <button
-//                 onClick={() => setActiveTab("registrations")}
-//                 className={`px-6 py-3 font-medium transition-colors ${
-//                   activeTab === "registrations"
-//                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
-//                     : "text-primary-foreground/70 hover:text-primary-foreground"
-//                 }`}
-//               >
-//                 Registrations
-//               </button>
-//               <button
-//                 onClick={() => setActiveTab("events")}
-//                 className={`px-6 py-3 font-medium transition-colors ${
-//                   activeTab === "events"
-//                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
-//                     : "text-primary-foreground/70 hover:text-primary-foreground"
-//                 }`}
-//               >
-//                 Events
-//               </button>
-//               <button
-//                 onClick={() => setActiveTab("categories")}
-//                 className={`px-6 py-3 font-medium transition-colors ${
-//                   activeTab === "categories"
-//                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
-//                     : "text-primary-foreground/70 hover:text-primary-foreground"
-//                 }`}
-//               >
-//                 Categories
-//               </button>
-//               <button
-//                 onClick={() => setActiveTab("gallery")}
-//                 className={`px-6 py-3 font-medium transition-colors ${
-//                   activeTab === "gallery"
-//                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
-//                     : "text-primary-foreground/70 hover:text-primary-foreground"
-//                 }`}
-//               >
-//                 Gallery
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </header>
-
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         {/* Registrations Tab */}
-//         {activeTab === "registrations" && (
-//           <>
-//             {/* Stats Cards */}
-//             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-//               <div className="bg-muted/30 p-6 rounded-lg">
-//                 <p className="text-sm text-muted-foreground mb-1">Total Registrations</p>
-//                 <p className="text-3xl font-bold">{stats.total}</p>
-//               </div>
-//               <div className="bg-green-500/10 border border-green-500 p-6 rounded-lg">
-//                 <p className="text-sm text-green-700 mb-1">Paid</p>
-//                 <p className="text-3xl font-bold text-green-700">{stats.paid}</p>
-//               </div>
-//               <div className="bg-blue-500/10 border border-blue-500 p-6 rounded-lg">
-//                 <p className="text-sm text-blue-700 mb-1">Contacted</p>
-//                 <p className="text-3xl font-bold text-blue-700">{stats.contacted}</p>
-//               </div>
-//               <div className="bg-yellow-500/10 border border-yellow-500 p-6 rounded-lg">
-//                 <p className="text-sm text-yellow-700 mb-1">Pending</p>
-//                 <p className="text-3xl font-bold text-yellow-700">{stats.pending}</p>
-//               </div>
-//               <div className="bg-red-500/10 border border-red-500 p-6 rounded-lg">
-//                 <p className="text-sm text-red-700 mb-1">Rejected</p>
-//                 <p className="text-3xl font-bold text-red-700">{stats.rejected}</p>
-//               </div>
-//             </div>
-
-//             {/* Search and Filter */}
-//             <div className="bg-muted/30 p-6 rounded-lg mb-8">
-//               <div className="flex flex-col md:flex-row gap-4">
-//                 <div className="flex-1 relative">
-//                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-//                   <input
-//                     type="text"
-//                     placeholder="Search by company, contact person, email, or product..."
-//                     value={searchQuery}
-//                     onChange={(e) => setSearchQuery(e.target.value)}
-//                     className="w-full pl-10 pr-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-500 outline-none"
-//                   />
-//                 </div>
-//                 <div className="flex items-center gap-2">
-//                   <Filter className="w-5 h-5 text-muted-foreground" />
-//                   <select
-//                     value={filterStatus}
-//                     onChange={(e) => setFilterStatus(e.target.value)}
-//                     className="px-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-500 outline-none"
-//                   >
-//                     <option value="all">All Status</option>
-//                     <option value="paid">Paid</option>
-//                     <option value="contacted">Contacted</option>
-//                     <option value="pending">Pending</option>
-//                     <option value="rejected">Rejected</option>
-//                   </select>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Registrations List */}
-//             <div className="space-y-4">
-//               <h2 className="font-serif text-2xl mb-4">Exhibitor Registrations ({filteredRegistrations.length})</h2>
-
-//               {filteredRegistrations.map((registration) => (
-//                 <div
-//                   key={registration.id}
-//                   className={`border-2 rounded-lg p-6 transition-all duration-500 hover:shadow-lg ${getStatusColor(
-//                     registration.status,
-//                   )}`}
-//                 >
-//                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-//                     {/* Registration Details */}
-//                     <div className="flex-1 space-y-4">
-//                       <div className="flex items-start justify-between">
-//                         <div>
-//                           <h3 className="font-serif text-xl mb-1">{registration.companyName}</h3>
-//                           <p className="text-sm text-muted-foreground">
-//                             Registered on {new Date(registration.createdAt).toLocaleDateString()}
-//                           </p>
-//                         </div>
-//                         <span
-//                           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(registration.status)}`}
-//                         >
-//                           {registration.status.toUpperCase()}
-//                         </span>
-//                       </div>
-
-//                       <div className="grid md:grid-cols-2 gap-4">
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Contact Person</p>
-//                           <p className="font-medium">{registration.contactPerson}</p>
-//                         </div>
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Designation</p>
-//                           <p className="font-medium">{registration.designation}</p>
-//                         </div>
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Email</p>
-//                           <p className="font-medium">{registration.email}</p>
-//                         </div>
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Contact Number</p>
-//                           <p className="font-medium">{registration.contactNumber}</p>
-//                         </div>
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Product/Service</p>
-//                           <p className="font-medium">{registration.product}</p>
-//                         </div>
-//                         <div>
-//                           <p className="text-sm text-muted-foreground mb-1">Address</p>
-//                           <p className="font-medium">{registration.address}</p>
-//                         </div>
-//                       </div>
-//                     </div>
-
-//                     {/* Status Actions */}
-//                     <div className="lg:w-48">
-//                       <p className="text-sm font-medium mb-3">Update Status</p>
-//                       <div className="space-y-2">
-//                         <button
-//                           onClick={() => handleStatusChange(registration.id, "pending")}
-//                           className="w-full bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-all duration-500 text-sm font-medium"
-//                         >
-//                           Mark Pending
-//                         </button>
-//                         <button
-//                           onClick={() => handleStatusChange(registration.id, "contacted")}
-//                           className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all duration-500 text-sm font-medium"
-//                         >
-//                           Mark Contacted
-//                         </button>
-//                         <button
-//                           onClick={() => handleStatusChange(registration.id, "paid")}
-//                           className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-all duration-500 text-sm font-medium"
-//                         >
-//                           Mark Paid
-//                         </button>
-//                         <button
-//                           onClick={() => handleStatusChange(registration.id, "rejected")}
-//                           className="w-full bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-all duration-500 text-sm font-medium"
-//                         >
-//                           Mark Rejected
-//                         </button>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-
-//               {filteredRegistrations.length === 0 && (
-//                 <div className="text-center py-12 text-muted-foreground">
-//                   <p>No registrations found matching your criteria.</p>
-//                 </div>
-//               )}
-//             </div>
-//           </>
-//         )}
-
-//         {activeTab === "events" && (
-//           <div>
-//             <div className="flex justify-between items-center mb-8">
-//               <h2 className="font-serif text-3xl">Manage Events</h2>
-//               <button
-//                 onClick={() => {
-//                   setEditingItem(null)
-//                   setShowModal(true)
-//                 }}
-//                 className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
-//               >
-//                 <Plus className="w-5 h-5" />
-//                 Add New Event
-//               </button>
-//             </div>
-
-//             <div className="grid md:grid-cols-2 gap-6">
-//               {events.map((event) => (
-//                 <div key={event.id} className="bg-muted/30 p-6 rounded-lg shadow-lg">
-//                   <div className="flex justify-between items-start mb-4">
-//                     <div>
-//                       <h3 className="font-serif text-2xl mb-2">{event.title}</h3>
-//                       <p className="text-sm text-muted-foreground flex items-center gap-2">
-//                         <MapPin className="w-4 h-4" />
-//                         {event.location}
-//                       </p>
-//                     </div>
-//                     <div className="flex gap-2">
-//                       <button
-//                         onClick={() => {
-//                           setEditingItem(event)
-//                           setShowModal(true)
-//                         }}
-//                         className="p-2 hover:bg-muted rounded-md transition-colors"
-//                       >
-//                         <Edit className="w-4 h-4" />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDeleteEvent(event.id)}
-//                         className="p-2 hover:bg-red-500/10 text-red-500 rounded-md transition-colors"
-//                       >
-//                         <Trash2 className="w-4 h-4" />
-//                       </button>
-//                     </div>
-//                   </div>
-
-//                   <div className="space-y-3 mb-4">
-//                     <div className="flex items-center gap-2">
-//                       <Calendar className="w-4 h-4 text-primary" />
-//                       <span className="text-sm">
-//                         {new Date(event.startDate).toLocaleDateString()} -{" "}
-//                         {new Date(event.endDate).toLocaleDateString()}
-//                       </span>
-//                     </div>
-//                     <div className="text-sm text-muted-foreground">{event.time}</div>
-//                   </div>
-
-//                   <div className="grid grid-cols-2 gap-3 text-sm border-t pt-4">
-//                     <div>
-//                       <span className="text-muted-foreground">Exhibitors:</span>{" "}
-//                       <span className="font-medium">{event.exhibitors}+</span>
-//                     </div>
-//                     <div>
-//                       <span className="text-muted-foreground">Buyers:</span>{" "}
-//                       <span className="font-medium">{event.buyers}+</span>
-//                     </div>
-//                     <div>
-//                       <span className="text-muted-foreground">Countries:</span>{" "}
-//                       <span className="font-medium">{event.countries}+</span>
-//                     </div>
-//                     <div>
-//                       <span className="text-muted-foreground">Sectors:</span>{" "}
-//                       <span className="font-medium">{event.sectors}</span>
-//                     </div>
-//                   </div>
-
-//                   <p className="text-sm text-muted-foreground mt-4">{event.description}</p>
-
-//                   <span
-//                     className={`inline-block mt-4 px-3 py-1 rounded-full text-xs font-medium ${
-//                       event.isPast ? "bg-gray-500 text-white" : "bg-green-500 text-white"
-//                     }`}
-//                   >
-//                     {event.isPast ? "PAST EVENT" : "UPCOMING"}
-//                   </span>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "categories" && (
-//           <div>
-//             <div className="flex justify-between items-center mb-8">
-//               <h2 className="font-serif text-3xl">Manage Categories</h2>
-//               <button
-//                 onClick={() => {
-//                   setEditingItem(null)
-//                   setShowModal(true)
-//                 }}
-//                 className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
-//               >
-//                 <Plus className="w-5 h-5" />
-//                 Add New Category
-//               </button>
-//             </div>
-
-//             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//               {categories.map((category) => (
-//                 <div key={category.id} className="bg-muted/30 p-6 rounded-lg shadow-lg">
-//                   <div className="flex justify-between items-start mb-4">
-//                     <div className="text-4xl">{category.icon}</div>
-//                     <div className="flex gap-2">
-//                       <button
-//                         onClick={() => {
-//                           setEditingItem(category)
-//                           setShowModal(true)
-//                         }}
-//                         className="p-2 hover:bg-muted rounded-md transition-colors"
-//                       >
-//                         <Edit className="w-4 h-4" />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDeleteCategory(category.id)}
-//                         className="p-2 hover:bg-red-500/10 text-red-500 rounded-md transition-colors"
-//                       >
-//                         <Trash2 className="w-4 h-4" />
-//                       </button>
-//                     </div>
-//                   </div>
-//                   <h3 className="font-serif text-xl mb-2">{category.name}</h3>
-//                   <p className="text-sm text-muted-foreground">{category.description}</p>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === "gallery" && (
-//           <div>
-//             <div className="flex justify-between items-center mb-8">
-//               <h2 className="font-serif text-3xl">Manage Gallery</h2>
-//               <button
-//                 onClick={() => {
-//                   setEditingItem(null)
-//                   setShowModal(true)
-//                 }}
-//                 className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
-//               >
-//                 <Plus className="w-5 h-5" />
-//                 Add New Image
-//               </button>
-//             </div>
-
-//             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//               {gallery.map((image) => (
-//                 <div key={image.id} className="bg-muted/30 rounded-lg shadow-lg overflow-hidden">
-//                   <div className="aspect-square relative">
-//                     <img
-//                       src={image.imageUrl || "/placeholder.svg"}
-//                       alt={image.title}
-//                       className="w-full h-full object-cover"
-//                     />
-//                   </div>
-//                   <div className="p-4">
-//                     <div className="flex justify-between items-start mb-2">
-//                       <h3 className="font-medium">{image.title}</h3>
-//                       <div className="flex gap-2">
-//                         <button
-//                           onClick={() => {
-//                             setEditingItem(image)
-//                             setShowModal(true)
-//                           }}
-//                           className="p-1 hover:bg-muted rounded-md transition-colors"
-//                         >
-//                           <Edit className="w-4 h-4" />
-//                         </button>
-//                         <button
-//                           onClick={() => handleDeleteGalleryImage(image.id)}
-//                           className="p-1 hover:bg-red-500/10 text-red-500 rounded-md transition-colors"
-//                         >
-//                           <Trash2 className="w-4 h-4" />
-//                         </button>
-//                       </div>
-//                     </div>
-//                     <p className="text-sm text-muted-foreground">{image.description}</p>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-//       </div>
-
-//       {showModal && (
-//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-//           <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-//             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-background">
-//               <h3 className="font-serif text-2xl">
-//                 {editingItem ? "Edit" : "Add New"}{" "}
-//                 {activeTab === "events"
-//                   ? "Event"
-//                   : activeTab === "categories"
-//                     ? "Category"
-//                     : activeTab === "gallery"
-//                       ? "Image"
-//                       : ""}
-//               </h3>
-//               <button
-//                 onClick={() => {
-//                   setShowModal(false)
-//                   setEditingItem(null)
-//                 }}
-//                 className="p-2 hover:bg-muted rounded-md transition-colors"
-//               >
-//                 <X className="w-5 h-5" />
-//               </button>
-//             </div>
-
-//             <form
-//               onSubmit={(e) => {
-//                 e.preventDefault()
-//                 const formData = new FormData(e.currentTarget)
-//                 const data = Object.fromEntries(formData.entries())
-
-//                 if (activeTab === "events") {
-//                   editingItem ? handleEditEvent(data) : handleAddEvent(data)
-//                 } else if (activeTab === "categories") {
-//                   editingItem ? handleEditCategory(data) : handleAddCategory(data)
-//                 } else if (activeTab === "gallery") {
-//                   editingItem ? handleEditGalleryImage(data) : handleAddGalleryImage(data)
-//                 }
-//               }}
-//               className="p-6 space-y-4"
-//             >
-//               {activeTab === "events" && (
-//                 <>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Event Title</label>
-//                     <input
-//                       type="text"
-//                       name="title"
-//                       defaultValue={editingItem?.title}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Location</label>
-//                     <input
-//                       type="text"
-//                       name="location"
-//                       defaultValue={editingItem?.location}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div className="grid md:grid-cols-2 gap-4">
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">Start Date</label>
-//                       <input
-//                         type="date"
-//                         name="startDate"
-//                         defaultValue={editingItem?.startDate}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">End Date</label>
-//                       <input
-//                         type="date"
-//                         name="endDate"
-//                         defaultValue={editingItem?.endDate}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Time</label>
-//                     <input
-//                       type="text"
-//                       name="time"
-//                       defaultValue={editingItem?.time}
-//                       placeholder="e.g., 10:00 AM - 7:00 PM"
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div className="grid md:grid-cols-2 gap-4">
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">Exhibitors</label>
-//                       <input
-//                         type="number"
-//                         name="exhibitors"
-//                         defaultValue={editingItem?.exhibitors}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">Buyers</label>
-//                       <input
-//                         type="number"
-//                         name="buyers"
-//                         defaultValue={editingItem?.buyers}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">Countries</label>
-//                       <input
-//                         type="number"
-//                         name="countries"
-//                         defaultValue={editingItem?.countries}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                     <div>
-//                       <label className="block text-sm font-medium mb-2">Sectors</label>
-//                       <input
-//                         type="number"
-//                         name="sectors"
-//                         defaultValue={editingItem?.sectors}
-//                         required
-//                         className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                       />
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Description</label>
-//                     <textarea
-//                       name="description"
-//                       defaultValue={editingItem?.description}
-//                       rows={3}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none"
-//                     />
-//                   </div>
-//                   <div>
-//                     <label className="flex items-center gap-2">
-//                       <input type="checkbox" name="isPast" defaultChecked={editingItem?.isPast} className="w-4 h-4" />
-//                       <span className="text-sm">Mark as Past Event</span>
-//                     </label>
-//                   </div>
-//                 </>
-//               )}
-
-//               {activeTab === "categories" && (
-//                 <>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Category Name</label>
-//                     <input
-//                       type="text"
-//                       name="name"
-//                       defaultValue={editingItem?.name}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Icon (Emoji)</label>
-//                     <input
-//                       type="text"
-//                       name="icon"
-//                       defaultValue={editingItem?.icon}
-//                       placeholder="e.g., 🔧"
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Description</label>
-//                     <textarea
-//                       name="description"
-//                       defaultValue={editingItem?.description}
-//                       rows={3}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none"
-//                     />
-//                   </div>
-//                 </>
-//               )}
-
-//               {activeTab === "gallery" && (
-//                 <>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Image Title</label>
-//                     <input
-//                       type="text"
-//                       name="title"
-//                       defaultValue={editingItem?.title}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Image URL</label>
-//                     <input
-//                       type="text"
-//                       name="imageUrl"
-//                       defaultValue={editingItem?.imageUrl}
-//                       placeholder="/path/to/image.jpg or https://..."
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-//                     />
-//                     <p className="text-xs text-muted-foreground mt-1">
-//                       Enter the image URL or upload to your server first
-//                     </p>
-//                   </div>
-//                   <div>
-//                     <label className="block text-sm font-medium mb-2">Description</label>
-//                     <textarea
-//                       name="description"
-//                       defaultValue={editingItem?.description}
-//                       rows={2}
-//                       required
-//                       className="w-full px-4 py-2 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none"
-//                     />
-//                   </div>
-//                 </>
-//               )}
-
-//               <div className="flex gap-3 pt-4">
-//                 <button
-//                   type="button"
-//                   onClick={() => {
-//                     setShowModal(false)
-//                     setEditingItem(null)
-//                   }}
-//                   className="flex-1 px-6 py-3 rounded-md border border-border hover:bg-muted transition-all duration-500 font-medium"
-//                 >
-//                   Cancel
-//                 </button>
-//                 <button
-//                   type="submit"
-//                   className="flex-1 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
-//                 >
-//                   {editingItem ? "Update" : "Add"}
-//                 </button>
-//               </div>
-//             </form>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   )
-// }
-
-
-
-
-
-
-
-
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { Search, LogOut, Filter, Plus, Edit, Trash2, X, Calendar, MapPin, Upload, Users, Building } from "lucide-react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { Search, LogOut, Filter, Plus, Edit, Trash2, X, Calendar, MapPin, Users, Building } from "lucide-react"
 
 // --- API Configuration ---
-const API_BASE_URL = "http://localhost:8000/api"
-const EXHIBITOR_REGISTRATION_URL = `${API_BASE_URL}/exhibitor-registrations/`
-const VISITOR_REGISTRATION_URL = `${API_BASE_URL}/visitor-registrations/`
-const EVENTS_URL = `${API_BASE_URL}/events/`
-const CATEGORIES_URL = `${API_BASE_URL}/categories/`
-const GALLERY_URL = `${API_BASE_URL}/gallery/`
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const EXHIBITOR_REGISTRATION_URL = `${BASE_URL}/exhibitor-registrations/`
+const VISITOR_REGISTRATION_URL = `${BASE_URL}/visitor-registrations/`
+const EVENTS_URL = `${BASE_URL}/events/`
+const CATEGORIES_URL = `${BASE_URL}/categories/`
+const GALLERY_URL = `${BASE_URL}/gallery/`
 
 // --- Utility Functions for API ---
 const getAuthHeaders = (): Record<string, string> => {
@@ -1087,10 +88,18 @@ interface GalleryImage {
 
 export default function AdminDashboard() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [activeTab, setActiveTab] = useState<"exhibitors" | "visitors" | "events" | "categories" | "gallery">("exhibitors")
+
+  // Initialize active tab based on URL param or default to 'exhibitors'
+  const validTabs = ["exhibitors", "visitors", "events", "categories", "gallery"]
+  const initialTab = searchParams.get("tab")
+  const [activeTab, setActiveTab] = useState<string>(validTabs.includes(initialTab || "") ? initialTab! : "exhibitors")
+
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -1104,18 +113,35 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([])
   const [gallery, setGallery] = useState<GalleryImage[]>([])
 
+  // --- Tab Handling with Persistence ---
+  const handleTabChange = (tabName: string) => {
+    setActiveTab(tabName)
+    // Update the URL query parameter without refreshing the page
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("tab", tabName)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  // Sync state with URL if back/forward button is used
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab")
+    if (tabFromUrl && validTabs.includes(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [searchParams])
+
   // --- Data Fetching Functions ---
   const fetchExhibitors = useCallback(async () => {
     try {
       const response = await fetch(EXHIBITOR_REGISTRATION_URL, {
         headers: getAuthHeaders(),
       })
-      
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      
+
       const data = await response.json()
       let exhibitorsData = []
-      
+
       if (data.results) {
         exhibitorsData = data.results
       } else if (Array.isArray(data)) {
@@ -1124,9 +150,9 @@ export default function AdminDashboard() {
         console.error("Unexpected API response format:", data)
         return
       }
-      
+
       setExhibitors(exhibitorsData)
-      
+
     } catch (error: any) {
       console.error("Failed to fetch exhibitors:", error)
       setDebugInfo(`Error: ${error.message}`)
@@ -1138,12 +164,12 @@ export default function AdminDashboard() {
       const response = await fetch(VISITOR_REGISTRATION_URL, {
         headers: getAuthHeaders(),
       })
-      
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      
+
       const data = await response.json()
       let visitorsData = []
-      
+
       if (data.results) {
         visitorsData = data.results
       } else if (Array.isArray(data)) {
@@ -1152,9 +178,9 @@ export default function AdminDashboard() {
         console.error("Unexpected API response format:", data)
         return
       }
-      
+
       setVisitors(visitorsData)
-      
+
     } catch (error: any) {
       console.error("Failed to fetch visitors:", error)
       setDebugInfo(`Error: ${error.message}`)
@@ -1225,7 +251,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isAdminLoggedIn")
     const accessToken = localStorage.getItem("accessToken")
-    
+
     if (isLoggedIn === "true" && accessToken) {
       setIsAuthenticated(true)
       fetchAllData()
@@ -1245,8 +271,8 @@ export default function AdminDashboard() {
   // --- CRUD Operations for Exhibitors ---
   const handleStatusChange = async (id: number, newStatus: ExhibitorRegistration["status"]) => {
     const originalExhibitors = [...exhibitors]
-    
-    setExhibitors(prev => prev.map(exhibitor => 
+
+    setExhibitors(prev => prev.map(exhibitor =>
       exhibitor.id === id ? { ...exhibitor, status: newStatus } : exhibitor
     ))
 
@@ -1258,10 +284,10 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to update status")
-      
+
       await fetchExhibitors()
       setDebugInfo(`Successfully updated exhibitor ${id} to ${newStatus}`)
-      
+
     } catch (error: any) {
       console.error("Error updating exhibitor status:", error)
       setExhibitors(originalExhibitors)
@@ -1280,7 +306,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to delete visitor")
-      
+
       await fetchVisitors()
       setDebugInfo("Visitor registration deleted successfully")
     } catch (error: any) {
@@ -1306,7 +332,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to create event")
-      
+
       await fetchEvents()
       setShowModal(false)
       setDebugInfo("Event created successfully")
@@ -1332,7 +358,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to update event")
-      
+
       await fetchEvents()
       setShowModal(false)
       setEditingItem(null)
@@ -1353,7 +379,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to delete event")
-      
+
       await fetchEvents()
       setDebugInfo("Event deleted successfully")
     } catch (error: any) {
@@ -1372,7 +398,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to create category")
-      
+
       await fetchCategories()
       setShowModal(false)
       setDebugInfo("Category created successfully")
@@ -1391,7 +417,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to update category")
-      
+
       await fetchCategories()
       setShowModal(false)
       setEditingItem(null)
@@ -1412,7 +438,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to delete category")
-      
+
       await fetchCategories()
       setDebugInfo("Category deleted successfully")
     } catch (error: any) {
@@ -1440,7 +466,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to create gallery image")
-      
+
       await fetchGallery()
       setShowModal(false)
       setImageFile(null)
@@ -1469,7 +495,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to update gallery image")
-      
+
       await fetchGallery()
       setShowModal(false)
       setEditingItem(null)
@@ -1491,7 +517,7 @@ export default function AdminDashboard() {
       })
 
       if (!response.ok) throw new Error("Failed to delete gallery image")
-      
+
       await fetchGallery()
       setDebugInfo("Gallery image deleted successfully")
     } catch (error: any) {
@@ -1588,7 +614,7 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-primary-foreground text-primary px-4 py-2 rounded-md hover:opacity-90 transition-all duration-500 font-medium"
+              className="flex items-center gap-2 bg-primary-foreground text-primary px-4 py-2 rounded-md hover:opacity-90 font-medium"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -1598,56 +624,51 @@ export default function AdminDashboard() {
 
         <div className="border-t border-primary-foreground/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto">
               <button
-                onClick={() => setActiveTab("exhibitors")}
-                className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-                  activeTab === "exhibitors"
+                onClick={() => handleTabChange("exhibitors")}
+                className={`px-6 py-3 font-medium flex items-center gap-2 ${activeTab === "exhibitors"
                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
                     : "text-primary-foreground/70 hover:text-primary-foreground"
-                }`}
+                  }`}
               >
                 <Building className="w-4 h-4" />
                 Exhibitors
               </button>
               <button
-                onClick={() => setActiveTab("visitors")}
-                className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-                  activeTab === "visitors"
+                onClick={() => handleTabChange("visitors")}
+                className={`px-6 py-3 font-medium flex items-center gap-2 ${activeTab === "visitors"
                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
                     : "text-primary-foreground/70 hover:text-primary-foreground"
-                }`}
+                  }`}
               >
                 <Users className="w-4 h-4" />
                 Visitors
               </button>
               <button
-                onClick={() => setActiveTab("events")}
-                className={`px-6 py-3 font-medium transition-colors ${
-                  activeTab === "events"
+                onClick={() => handleTabChange("events")}
+                className={`px-6 py-3 font-medium ${activeTab === "events"
                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
                     : "text-primary-foreground/70 hover:text-primary-foreground"
-                }`}
+                  }`}
               >
                 Events
               </button>
               <button
-                onClick={() => setActiveTab("categories")}
-                className={`px-6 py-3 font-medium transition-colors ${
-                  activeTab === "categories"
+                onClick={() => handleTabChange("categories")}
+                className={`px-6 py-3 font-medium ${activeTab === "categories"
                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
                     : "text-primary-foreground/70 hover:text-primary-foreground"
-                }`}
+                  }`}
               >
                 Categories
               </button>
               <button
-                onClick={() => setActiveTab("gallery")}
-                className={`px-6 py-3 font-medium transition-colors ${
-                  activeTab === "gallery"
+                onClick={() => handleTabChange("gallery")}
+                className={`px-6 py-3 font-medium ${activeTab === "gallery"
                     ? "bg-primary-foreground text-primary border-b-2 border-primary"
                     : "text-primary-foreground/70 hover:text-primary-foreground"
-                }`}
+                  }`}
               >
                 Gallery
               </button>
@@ -1662,7 +683,7 @@ export default function AdminDashboard() {
           <h3 className="font-bold text-blue-800 mb-2">System Status</h3>
           <p className="text-sm text-blue-700">{debugInfo}</p>
           <div className="flex gap-2 mt-2">
-            <button 
+            <button
               onClick={fetchAllData}
               className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
             >
@@ -1712,7 +733,7 @@ export default function AdminDashboard() {
                     placeholder="Search by company, contact person, email, or product..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-500 outline-none"
+                    className="w-full pl-10 pr-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -1720,7 +741,7 @@ export default function AdminDashboard() {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-500 outline-none"
+                    className="px-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   >
                     <option value="all">All Status</option>
                     <option value="paid">Paid</option>
@@ -1739,7 +760,7 @@ export default function AdminDashboard() {
               {filteredExhibitors.map((exhibitor) => (
                 <div
                   key={exhibitor.id}
-                  className={`border-2 rounded-lg p-6 transition-all duration-500 hover:shadow-lg ${getStatusColor(
+                  className={`border-2 rounded-lg p-6 hover:shadow-lg ${getStatusColor(
                     exhibitor.status,
                   )}`}
                 >
@@ -1794,44 +815,40 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <button
                           onClick={() => handleStatusChange(exhibitor.id, "pending")}
-                          className={`w-full px-4 py-2 rounded-md transition-all duration-500 text-sm font-medium ${
-                            exhibitor.status === "pending" 
-                              ? "bg-yellow-600 text-white cursor-not-allowed" 
+                          className={`w-full px-4 py-2 rounded-md text-sm font-medium ${exhibitor.status === "pending"
+                              ? "bg-yellow-600 text-white cursor-not-allowed"
                               : "bg-yellow-500 text-white hover:bg-yellow-600"
-                          }`}
+                            }`}
                           disabled={exhibitor.status === "pending"}
                         >
                           {exhibitor.status === "pending" ? "Currently Pending" : "Mark Pending"}
                         </button>
                         <button
                           onClick={() => handleStatusChange(exhibitor.id, "contacted")}
-                          className={`w-full px-4 py-2 rounded-md transition-all duration-500 text-sm font-medium ${
-                            exhibitor.status === "contacted" 
-                              ? "bg-blue-600 text-white cursor-not-allowed" 
+                          className={`w-full px-4 py-2 rounded-md text-sm font-medium ${exhibitor.status === "contacted"
+                              ? "bg-blue-600 text-white cursor-not-allowed"
                               : "bg-blue-500 text-white hover:bg-blue-600"
-                          }`}
+                            }`}
                           disabled={exhibitor.status === "contacted"}
                         >
                           {exhibitor.status === "contacted" ? "Currently Contacted" : "Mark Contacted"}
                         </button>
                         <button
                           onClick={() => handleStatusChange(exhibitor.id, "paid")}
-                          className={`w-full px-4 py-2 rounded-md transition-all duration-500 text-sm font-medium ${
-                            exhibitor.status === "paid" 
-                              ? "bg-green-600 text-white cursor-not-allowed" 
+                          className={`w-full px-4 py-2 rounded-md text-sm font-medium ${exhibitor.status === "paid"
+                              ? "bg-green-600 text-white cursor-not-allowed"
                               : "bg-green-500 text-white hover:bg-green-600"
-                          }`}
+                            }`}
                           disabled={exhibitor.status === "paid"}
                         >
                           {exhibitor.status === "paid" ? "Currently Paid" : "Mark Paid"}
                         </button>
                         <button
                           onClick={() => handleStatusChange(exhibitor.id, "rejected")}
-                          className={`w-full px-4 py-2 rounded-md transition-all duration-500 text-sm font-medium ${
-                            exhibitor.status === "rejected" 
-                              ? "bg-red-600 text-white cursor-not-allowed" 
+                          className={`w-full px-4 py-2 rounded-md text-sm font-medium ${exhibitor.status === "rejected"
+                              ? "bg-red-600 text-white cursor-not-allowed"
                               : "bg-red-500 text-white hover:bg-red-600"
-                          }`}
+                            }`}
                           disabled={exhibitor.status === "rejected"}
                         >
                           {exhibitor.status === "rejected" ? "Currently Rejected" : "Mark Rejected"}
@@ -1891,7 +908,7 @@ export default function AdminDashboard() {
                     placeholder="Search by name, company, email, or industry..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-500 outline-none"
+                    className="w-full pl-10 pr-4 py-3 rounded-md bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
               </div>
@@ -1904,7 +921,7 @@ export default function AdminDashboard() {
               {filteredVisitors.map((visitor) => (
                 <div
                   key={visitor.id}
-                  className="border-2 rounded-lg p-6 transition-all duration-500 hover:shadow-lg bg-blue-500/10 border-blue-500"
+                  className="border-2 rounded-lg p-6 hover:shadow-lg bg-blue-500/10 border-blue-500"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     {/* Visitor Details */}
@@ -1949,7 +966,7 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <button
                           onClick={() => handleDeleteVisitor(visitor.id)}
-                          className="w-full bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-all duration-500 text-sm font-medium"
+                          className="w-full bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 text-sm font-medium"
                         >
                           Delete Registration
                         </button>
@@ -1985,7 +1002,7 @@ export default function AdminDashboard() {
                   setEditingItem(null)
                   setShowModal(true)
                 }}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Add New Event
@@ -2055,9 +1072,8 @@ export default function AdminDashboard() {
                   <p className="text-sm text-muted-foreground mt-4">{event.description}</p>
 
                   <span
-                    className={`inline-block mt-4 px-3 py-1 rounded-full text-xs font-medium ${
-                      event.is_past ? "bg-gray-500 text-white" : "bg-green-500 text-white"
-                    }`}
+                    className={`inline-block mt-4 px-3 py-1 rounded-full text-xs font-medium ${event.is_past ? "bg-gray-500 text-white" : "bg-green-500 text-white"
+                      }`}
                   >
                     {event.is_past ? "PAST EVENT" : "UPCOMING"}
                   </span>
@@ -2084,7 +1100,7 @@ export default function AdminDashboard() {
                   setEditingItem(null)
                   setShowModal(true)
                 }}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Add New Category
@@ -2139,7 +1155,7 @@ export default function AdminDashboard() {
                   setEditingItem(null)
                   setShowModal(true)
                 }}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all duration-500 font-medium"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Add New Image
@@ -2345,11 +1361,11 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="flex items-center gap-2">
-                      <input 
-                        type="checkbox" 
-                        name="is_past" 
-                        defaultChecked={editingItem?.is_past} 
-                        className="w-4 h-4" 
+                      <input
+                        type="checkbox"
+                        name="is_past"
+                        defaultChecked={editingItem?.is_past}
+                        className="w-4 h-4"
                       />
                       <span className="text-sm">Mark as Past Event</span>
                     </label>
