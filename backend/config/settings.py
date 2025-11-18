@@ -55,10 +55,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+'''
+
+# Amazon RDS PostgreSQL database
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'demo_1',
+        'USER': 'igtf',
+        'PASSWORD': 'Sitarahub1234',        
+        'HOST': 'database-1.cve4q6gkaifx.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',        
     }
 }
 
