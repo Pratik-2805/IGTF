@@ -1,28 +1,30 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-
-const tabs = ["exhibitors", "visitors", "events", "categories", "gallery"];
+import { UserRole, roleTabs, roleTitles } from "@/utils/roleConfig";
 
 interface HeaderProps {
     activeTab: string;
     onTabChange: (tab: string) => void;
     onLogout: () => void;
+    role: UserRole;
 }
 
-export default function Header({ activeTab, onTabChange, onLogout }: HeaderProps) {
+export default function Header({ activeTab, onTabChange, onLogout, role }: HeaderProps) {
+    const tabs = roleTabs[role] ?? [];
+    const title = roleTitles[role] ?? "Dashboard";
+
     return (
         <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-40">
-            {/* Logo + Logout */}
+            {/* Title + Logout */}
             <div className="flex items-center justify-between px-6 py-4">
-                <h1 className="font-serif text-2xl">Admin Dashboard</h1>
+                <h1 className="font-serif text-2xl">{title}</h1>
 
                 <button
                     onClick={onLogout}
                     className="flex items-center gap-2 bg-primary-foreground text-primary px-4 py-2 rounded-md hover:bg-primary-foreground/90"
                 >
-                    <LogOut className="w-4 h-4" />
-                    Logout
+                    <LogOut className="w-4 h-4" /> Logout
                 </button>
             </div>
 
