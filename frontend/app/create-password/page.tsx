@@ -12,7 +12,8 @@ export default function CreatePasswordPage() {
 
     const inviteToken = searchParams.get("token");
 
-    const [step, setStep] = useState(inviteToken ? 2 : 1);
+    const [step, setStep] = useState(1);
+
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
     const [password, setPassword] = useState("");

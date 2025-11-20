@@ -1,19 +1,13 @@
+// src/hooks/useTeam.ts
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+// "http://localhost:8000/api"
 
-// Define the team user interface
-export interface TeamUser {
+interface TeamUser {
   id: number;
-  name: string;
-  email: string;
-  role: "manager" | "sales";
-}
-
-// Define what data createUser accepts
-interface CreateUserPayload {
   name: string;
   email: string;
   role: "manager" | "sales";
@@ -21,62 +15,111 @@ interface CreateUserPayload {
 
 export function useTeam() {
   const [team, setTeam] = useState<TeamUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const fetchTeam = async () => {
-    setLoading(true);
+  const getAuthHeader = () => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
 
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  };
+
+  // ============================
+  // FETCH TEAM LIST
+  // ============================
+  const fetchTeam = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/team/list/`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access")}`,
-        },
+      setLoading(true);
+      setError("");
+
+      const res = await fetch(`${API_BASE}/team/list/`, {
+        method: "GET",
+        headers: getAuthHeader(),
       });
+
+      if (!res.ok) throw new Error("Unauthorized");
 
       const data = await res.json();
-      if (res.ok) setTeam(data);
-    } catch (err) {
-      console.log("Team fetch error:", err);
+      setTeam(data);
+    } catch (err: any) {
+      console.error("Fetch Team Error:", err);
+      setError("Failed to load team members.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
-
-  const createUser = async ({ name, email, role }: CreateUserPayload) => {
-    try {
-      await fetch(`${BASE_URL}/api/team/create/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access")}`,
-        },
-        body: JSON.stringify({ name, email, role }),
-      });
-
-      await fetchTeam();
-    } catch (err) {
-      console.log("Team create error:", err);
-    }
-  };
-
-  const deleteUser = async (id: number) => {
-    try {
-      await fetch(`${BASE_URL}/api/team/delete/${id}/`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access")}`,
-        },
-      });
-
-      await fetchTeam();
-    } catch (err) {
-      console.log("Team delete error:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchTeam();
   }, []);
 
-  return { team, loading, createUser, deleteUser, refresh: fetchTeam };
+  // fetch on mount
+  useEffect(() => {
+    fetchTeam();
+  }, [fetchTeam]);
+
+  // ============================
+  // CREATE USER
+  // ============================
+  const createUser = async (data: {
+    name: string;
+    email: string;
+    role: "manager" | "sales";
+  }) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await fetch(`${API_BASE}/team/create/`, {
+        method: "POST",
+        headers: getAuthHeader(),
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error("Unauthorized");
+
+      await res.json();
+      await fetchTeam(); // refresh list after create
+    } catch (err) {
+      console.error("Create Team User Error:", err);
+      setError("Failed to create user.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================
+  // DELETE USER
+  // ============================
+  const deleteUser = async (id: number) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await fetch(`${API_BASE}/team/delete/${id}/`, {
+        method: "DELETE",
+        headers: getAuthHeader(),
+      });
+
+      if (!res.ok) throw new Error("Unauthorized");
+
+      await fetchTeam(); // refresh list after delete
+    } catch (err) {
+      console.error("Delete Team User Error:", err);
+      setError("Failed to delete user.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    team,
+    loading,
+    error,
+    fetchTeam,
+    createUser,
+    deleteUser,
+  };
 }

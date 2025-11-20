@@ -1,13 +1,17 @@
-from rest_framework import viewsets, permissions
+# api/views.py
+from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
-
+from django.contrib.auth.models import User as DjangoUser
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+import random
 
 from .models import (
     ExhibitorRegistration,
@@ -15,6 +19,7 @@ from .models import (
     Category,
     Event,
     GalleryImage,
+    TeamUser,
     PasswordSetupToken
 )
 from .serializers import (
@@ -23,47 +28,39 @@ from .serializers import (
     CategorySerializer,
     EventSerializer,
     GalleryImageSerializer,
+    TeamUserSerializer
 )
-from .utils import CustomTokenObtainPairSerializer
-import random
+from .utils import AdminTokenObtainPairSerializer, create_token_for_teamuser
 
-
-User = get_user_model()
-
-# -------------------------------
-# JWT Login for Admin/Manager/Sales
-# -------------------------------
+# Keep AdminToken view (Django User)
 class AdminTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+    serializer_class = AdminTokenObtainPairSerializer
     permission_classes = [AllowAny]
 
 
-# -------------------------------
-# Optional: Create admin user
-# -------------------------------
+# Create superuser bootstrap endpoint (optional)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_admin_user(request):
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='admin123'
-        )
-        return Response({'message': 'Admin user created'})
-    return Response({'message': 'Admin user already exists'})
+    if DjangoUser.objects.filter(username='admin').exists():
+        return Response({'message': 'Admin user already exists'})
+
+    DjangoUser.objects.create_superuser(
+        username='admin',
+        email='admin@example.com',
+        password='admin123'
+    )
+    return Response({'message': 'Admin user created'})
 
 
-# -------------------------------------------------------
-# ADMIN: Create Team Member (Inactive + Email Invite)
-# -------------------------------------------------------
+# -----------------------
+# TEAM: create team member (invite flow)
+# -----------------------
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_team_user(request):
-    admin = request.user
-
-    if admin.role != "admin":
-        return Response({"detail": "Only admin can create team members."}, status=403)
+    if not getattr(request.user, 'is_superuser', False) and not getattr(request.user, 'is_staff', False):
+        return Response({"detail": "Only admin/staff can create team members."}, status=403)
 
     name = request.data.get("name")
     email = request.data.get("email")
@@ -75,24 +72,26 @@ def create_team_user(request):
     if role not in ["manager", "sales"]:
         return Response({"detail": "Invalid role"}, status=400)
 
-    if User.objects.filter(email=email).exists():
+    if TeamUser.objects.filter(email=email).exists():
         return Response({"detail": "User already exists"}, status=400)
 
-    # Create inactive user without password
-    user = User.objects.create(
-        username=email,
-        email=email,
+    # Create inactive team user
+    user = TeamUser.objects.create(
         name=name,
+        email=email,
         role=role,
         is_active=False,
         is_password_set=False
     )
 
-    # Create token for password setup
-    token_obj = PasswordSetupToken.objects.create(user=user)
+    # Password setup token
+    token_obj = PasswordSetupToken.objects.create(user_email=email)
 
-    # Send email with setup link
-    setup_link = f"https://yourdomain.com/create-password?token={token_obj.token}"
+    # 🔥 Use frontend URL from .env
+    frontend = settings.FRONTEND_URL.rstrip("/")
+    setup_link = f"{frontend}/create-password?token={token_obj.token}"
+
+    # Send email
     send_mail(
         "Set Your Password",
         f"Hello {name},\nUse the link below to set your password:\n{setup_link}\n(This link expires in 1 hour.)",
@@ -108,18 +107,16 @@ def create_team_user(request):
     })
 
 
-# -------------------------------------------------------
-# GET TEAM LIST
-# -------------------------------------------------------
+# -----------------------
+# Team list (only viewable by Django admin/staff)
+# -----------------------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_team_users(request):
-    admin = request.user
+    if not getattr(request.user, 'is_superuser', False) and not getattr(request.user, 'is_staff', False):
+        return Response({"detail": "Only admin/staff can view team."}, status=403)
 
-    if admin.role != "admin":
-        return Response({"detail": "Only admin can view team."}, status=403)
-
-    users = User.objects.filter(role__in=["manager", "sales"])
+    users = TeamUser.objects.all()
 
     data = [{
         "id": u.id,
@@ -132,33 +129,29 @@ def list_team_users(request):
     return Response(data)
 
 
-# -------------------------------------------------------
-# DELETE TEAM USER
-# -------------------------------------------------------
+# -----------------------
+# DELETE team user
+# -----------------------
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_team_user(request, user_id):
-    admin = request.user
-
-    if admin.role != "admin":
+    if not getattr(request.user, 'is_superuser', False) and not getattr(request.user, 'is_staff', False):
         return Response({"detail": "Access denied"}, status=403)
 
     try:
-        u = User.objects.get(id=user_id)
-    except User.DoesNotExist:
+        u = TeamUser.objects.get(id=user_id)
+    except TeamUser.DoesNotExist:
         return Response({"detail": "User not found"}, status=404)
-
-    if u.role == "admin":
-        return Response({"detail": "Cannot delete admin"}, status=400)
 
     u.delete()
     return Response({"message": "Team member removed"})
 
 
-# -------------------------------------------------------
-# OTP FLOW — SEND OTP
-# -------------------------------------------------------
-OTP_STORE = {}  # temporary memory store (replace with Redis for production)
+# -----------------------
+# OTP FLOW (temporary in-memory store) — replace with Redis in prod
+# -----------------------
+OTP_STORE = {}  # { email: otp }
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -175,9 +168,7 @@ def send_otp(request):
     except PasswordSetupToken.DoesNotExist:
         return Response({"detail": "Invalid or expired link."}, status=400)
 
-    user = token_obj.user
-
-    if user.email != email:
+    if token_obj.user_email != email:
         return Response({"detail": "Email does not match invitation."}, status=403)
 
     # Generate OTP
@@ -194,9 +185,6 @@ def send_otp(request):
     return Response({"message": "OTP sent"})
 
 
-# -------------------------------------------------------
-# OTP FLOW — VERIFY OTP
-# -------------------------------------------------------
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_otp(request):
@@ -212,9 +200,9 @@ def verify_otp(request):
     return Response({"message": "OTP verified"})
 
 
-# -------------------------------------------------------
-# CREATE PASSWORD — FINAL STEP
-# -------------------------------------------------------
+# -----------------------
+# CREATE PASSWORD (final step for team user)
+# -----------------------
 from django.contrib.auth.hashers import make_password
 
 @api_view(['POST'])
@@ -238,30 +226,64 @@ def create_password(request):
     except PasswordSetupToken.DoesNotExist:
         return Response({"detail": "Invalid link"}, status=400)
 
-    user = token_obj.user
-
-    if user.email != email:
+    if token_obj.user_email != email:
         return Response({"detail": "Email mismatch"}, status=403)
 
     if not token_obj.is_valid():
         return Response({"detail": "Token expired"}, status=400)
 
+    # Find TeamUser
+    try:
+        user = TeamUser.objects.get(email=email)
+    except TeamUser.DoesNotExist:
+        return Response({"detail": "User not found"}, status=404)
+
     # Activate user + set password
-    user.password = make_password(password)
-    user.is_active = True
-    user.is_password_set = True
-    user.save()
+    user.set_password(password)
 
     # Cleanup
-    del OTP_STORE[email]
+    OTP_STORE.pop(email, None)
     token_obj.delete()
 
     return Response({"message": "Password created successfully!"})
 
 
-# -------------------------------------------------------
-# Existing CRUD APIs (leave unchanged)
-# -------------------------------------------------------
+# -----------------------
+# Team login (Manager / Sales)
+# -----------------------
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def team_login(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    if not (email and password):
+        return Response({"detail": "Email & password required"}, status=400)
+
+    try:
+        user = TeamUser.objects.get(email=email)
+    except TeamUser.DoesNotExist:
+        return Response({"detail": "Invalid credentials"}, status=400)
+
+    if not user.is_password_set:
+        return Response({"detail": "Password not set"}, status=400)
+
+    if not user.check_password(password):
+        return Response({"detail": "Invalid credentials"}, status=400)
+
+    tokens = create_token_for_teamuser(user)
+    return Response({
+        "refresh": tokens['refresh'],
+        "access": tokens['access'],
+        "role": user.role,
+        "name": user.name,
+        "email": user.email
+    })
+
+
+# -----------------------
+# Existing CRUD APIs (unchanged semantics)
+# -----------------------
 class ExhibitorRegistrationViewSet(viewsets.ModelViewSet):
     queryset = ExhibitorRegistration.objects.all().order_by('-created_at')
     serializer_class = ExhibitorRegistrationSerializer
@@ -281,8 +303,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        image = request.FILES["image"]
-        obj = Category.objects.create(image=image)
+        image = request.FILES.get("image")
+        if not image:
+            return Response({"detail": "Image required"}, status=400)
+        obj = Category.objects.create(image=image, name=request.data.get('name', ''))
         return Response({"url": obj.image.url})
 
 

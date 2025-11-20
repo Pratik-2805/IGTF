@@ -1,134 +1,178 @@
-import uuid
+# api/models.py
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.hashers import make_password, check_password
+import uuid
 from datetime import timedelta
 
 
-# ---------------------------------------------------
-# EXISTING MODELS (unchanged)
-# ---------------------------------------------------
+# =====================================================
+# Helper function (safe for migrations)
+# =====================================================
+def generate_token():
+    return uuid.uuid4().hex
+
+
+# =====================================================
+# TEAM USER (Manager / Sales)
+# =====================================================
+class TeamUser(models.Model):
+    """
+    Team members (manager / sales). Username is optional until the user sets
+    their password during the password-setup flow.
+    """
+    username = models.CharField(max_length=150, unique=True, null=True, blank=True)
+    name = models.CharField(max_length=150)
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=20, choices=(("manager", "Manager"), ("sales", "Sales")))
+    password = models.CharField(max_length=255, null=True, blank=True)
+    is_password_set = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)   # becomes True once password is set
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+        self.is_password_set = True
+        self.is_active = True
+        self.save(update_fields=["password", "is_password_set", "is_active", "updated_at"])
+
+    def check_password(self, raw_password) -> bool:
+        if not self.password:
+            return False
+        return check_password(raw_password, self.password)
+
+    def __str__(self):
+        return f"{self.name} <{self.email}>"
+
+
+# =====================================================
+# PASSWORD SETUP TOKEN
+# =====================================================
+class PasswordSetupToken(models.Model):
+    user_email = models.EmailField()
+    token = models.CharField(max_length=255, unique=True, default=generate_token)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self) -> bool:
+        return timezone.now() - self.created_at < timedelta(days=1)
+
+    def __str__(self):
+        return f"PasswordSetupToken({self.user_email})"
+
+
+# =====================================================
+# Exhibitor Registration
+# =====================================================
 class ExhibitorRegistration(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('contacted', 'Contacted'),
-        ('paid', 'Paid'),
-        ('rejected', 'Rejected'),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     company_name = models.CharField(max_length=255)
-    contact_person_name = models.CharField(max_length=255)
-    designation = models.CharField(max_length=255)
-    email_address = models.EmailField()
-    contact_number = models.CharField(max_length=20)
-    product_service = models.CharField(max_length=255)
-    company_address = models.TextField()
+    contact_person = models.CharField(max_length=200, blank=True)
+    designation = models.CharField(max_length=150, blank=True)
+    email = models.EmailField()
+    contact_number = models.CharField(max_length=50, blank=True)
+    product = models.CharField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
+    company_logo = models.ImageField(upload_to="exhibitor_logos/", null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=(
+            ("pending", "Pending"),
+            ("contacted", "Contacted"),
+            ("paid", "Paid"),
+            ("rejected", "Rejected"),
+        ),
+        default="pending",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.company_name} - {self.contact_person_name}"
+        return f"{self.company_name} ({self.contact_person})"
 
 
+# =====================================================
+# Visitor Registration
+# =====================================================
 class VistorRegistration(models.Model):
-    First_name = models.CharField(max_length=255)
-    Last_name = models.CharField(max_length=255)
-    company_name = models.CharField(max_length=255)
-    email_address = models.EmailField()
-    contact_number = models.CharField(max_length=20)
-    industry = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150, blank=True)
+    company = models.CharField(max_length=255, blank=True)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50, blank=True)
+    industry_interest = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        verbose_name_plural = "Visitor Registrations"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.First_name} {self.Last_name} - {self.company_name}"
+        return f"{self.first_name} {self.last_name} <{self.email}>"
 
 
+# =====================================================
+# Category
+# =====================================================
 class Category(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    icon = models.CharField(max_length=10)
-    image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=64, blank=True)  # emoji or icon name
+    image = models.ImageField(upload_to="categories/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name_plural = "Categories"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
 
 
+# =====================================================
+# Event
+# =====================================================
 class Event(models.Model):
-    title = models.CharField(max_length=200)
-    location = models.TextField()
-    venue = models.CharField(max_length=200, default="")
+    title = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    time_schedule = models.CharField(max_length=100, default="10:00 AM - 7:00 PM")
-    exhibitors_count = models.CharField(max_length=50, default="400+")
-    buyers_count = models.CharField(max_length=50, default="6000+")
-    countries_count = models.CharField(max_length=50, default="40+")
-    sectors_count = models.CharField(max_length=50, default="16")
-    is_active = models.BooleanField(default=True)
+    time = models.CharField(max_length=120, blank=True)
+    exhibitors = models.PositiveIntegerField(default=0)
+    buyers = models.PositiveIntegerField(default=0)
+    countries = models.PositiveIntegerField(default=0)
+    sectors = models.PositiveIntegerField(default=0)
     description = models.TextField(blank=True)
+    is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['start_date']
+        ordering = ["-start_date"]
 
     def __str__(self):
         return self.title
 
 
+# =====================================================
+# Gallery Image
+# =====================================================
 class GalleryImage(models.Model):
-    title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='gallery/')
-    description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "Gallery Images"
-
-    def __str__(self):
-        return self.title
-
-
-# ---------------------------------------------------
-# CUSTOM USER FOR TEAM MANAGEMENT + ACTIVATION FLOW
-# ---------------------------------------------------
-class CustomUser(AbstractUser):
-    ROLE_CHOICES = (
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("sales", "Sales"),
+    TYPE_CHOICES = (
+        ("carousel", "Carousel"),
+        ("banner", "Banner"),
+        ("gallery", "Gallery"),
+        ("exhibitor", "Exhibitor"),
     )
 
-    name = models.CharField(max_length=255, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="sales")
-
-    # 🔥 important for activation system
-    is_password_set = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.username
-
-
-# ---------------------------------------------------
-# PASSWORD SETUP TOKEN (expiry: 1 hour)
-# ---------------------------------------------------
-class PasswordSetupToken(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    title = models.CharField(max_length=255, blank=True)
+    image = models.ImageField(upload_to="gallery/")
+    description = models.TextField(blank=True)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="gallery")
+    display_order = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def is_valid(self):
-        return self.created_at >= timezone.now() - timedelta(hours=1)
+    class Meta:
+        ordering = ["display_order", "-created_at"]
+
+    def __str__(self):
+        return self.title or f"Image {self.pk}"
