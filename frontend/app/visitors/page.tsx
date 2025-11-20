@@ -16,7 +16,7 @@ interface VisitorFormData {
 
 // ✅ Use the same backend URL pattern as your working exhibitor API
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const API_URL = `${BASE_URL}/api/visitor-registrations/`;
+const API_URL = `${BASE_URL}/visitor-registrations/`;
 
 export default function VisitorsPage() {
   const [formData, setFormData] = useState<VisitorFormData>({

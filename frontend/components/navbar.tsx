@@ -22,7 +22,7 @@ export function Navbar() {
     }, 50);
 
     const timer = setTimeout(() => {
-      router.push("/admin/login");
+      router.push("/login");
       setPressProgress(0);
       if (progressInterval.current) clearInterval(progressInterval.current);
     }, 3000);
