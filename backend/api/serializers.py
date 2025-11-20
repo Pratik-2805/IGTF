@@ -51,11 +51,11 @@ class VisitorRegistrationSerializer(serializers.ModelSerializer):
     
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    # image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'icon', 'image', 'image_url', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'description', 'icon', 'image', 'created_at', 'updated_at']
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -64,8 +64,8 @@ class EventSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class GalleryImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    # image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GalleryImage
-        fields = ['id', 'title', 'description', 'image', 'image_url', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'description', 'image', 'created_at', 'updated_at']

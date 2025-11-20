@@ -69,11 +69,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        image = request.FILES["image"]
-        obj = Category.objects.create(image=image)
-        return Response({"url": obj.image.url})
-
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all().order_by('-start_date')
     serializer_class = EventSerializer
