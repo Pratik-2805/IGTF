@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import{ jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 
 // Layout Components
@@ -63,7 +63,7 @@ export default function DashboardClient() {
     }, [role]);
 
     // source-of-truth valid tabs for the app (all possible)
-    const validTabs = ["exhibitors", "visitors", "events", "categories", "gallery","manage-team"];
+    const validTabs = ["exhibitors", "visitors", "events", "categories", "gallery", "manage-team"];
 
     // Read tab from URL (source of truth)
     const tabFromUrl = searchParams?.get("tab") ?? "";
@@ -159,14 +159,28 @@ export default function DashboardClient() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authChecked, role, searchParams?.toString()]);
 
-    // Modal submit handler (kept as before)
+    // Modal submit handler
     const handleSubmit = (formData: any) => {
+
         if (activeTab === "events") {
-            eventsHook.editingItem ? eventsHook.editEvent(formData) : eventsHook.addEvent(formData);
+            eventsHook.editingItem
+                ? eventsHook.editEvent(formData)
+                : eventsHook.addEvent(formData);
         }
 
         if (activeTab === "categories") {
-            categoriesHook.editingItem ? categoriesHook.editCategory(formData) : categoriesHook.addCategory(formData);
+            const name = formData.name;
+            // Assuming the file input name is 'image' in the form
+            const file = formData.image && formData.image instanceof File ? formData.image : null;
+
+            if (!name) {
+                // Basic validation
+                console.error("Category name is required.");
+                return;
+            }
+
+            // Pass both the data object and the file object (if available)
+            categoriesHook.addCategory({ name }, file);
         }
 
         if (activeTab === "gallery") {
@@ -230,7 +244,6 @@ export default function DashboardClient() {
                     <CategoriesTab
                         categories={categoriesHook.categories}
                         addCategory={categoriesHook.addCategory}
-                        editCategory={categoriesHook.editCategory}
                         deleteCategory={categoriesHook.deleteCategory}
                         loading={categoriesHook.loading}
                     />
@@ -253,7 +266,6 @@ export default function DashboardClient() {
                         loading={teamHook.loading}
                         createUser={teamHook.createUser}
                         deleteUser={teamHook.deleteUser}
-                        refresh={teamHook.refresh}
                     />
                 )}
 
@@ -262,15 +274,17 @@ export default function DashboardClient() {
             {/* REUSABLE MODAL */}
             {showModal && (
                 <Modal
+                    // Updated modal title logic
                     title={
-                        eventsHook.editingItem || categoriesHook.editingItem || galleryHook.editingItem
+                        (eventsHook.editingItem || galleryHook.editingItem)
                             ? `Edit ${activeTab}`
                             : `Add new ${activeTab}`
                     }
+
                     onClose={() => {
                         setShowModal(false);
                         eventsHook.setEditingItem(null);
-                        categoriesHook.setEditingItem(null);
+                        // categoriesHook.setEditingItem(null); <-- REMOVED
                         galleryHook.setEditingItem(null);
                         galleryHook.setImageFile(null);
                     }}
@@ -375,7 +389,9 @@ export default function DashboardClient() {
                                     id="name"
                                     name="name"
                                     type="text"
-                                    defaultValue={(categoriesHook.editingItem as any)?.name || ""}
+                                    // Removed logic for default value from editingItem, now always blank for add
+                                    // If we are editing, we are always adding (since we disabled edit)
+                                    defaultValue={""}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                                 />
                             </div>

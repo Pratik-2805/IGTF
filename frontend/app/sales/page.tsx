@@ -1,7 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import SalesDashboardClient from "@/components/admin/SalesDashboardClient";
 
-import DashboardClient from "@/components/admin/SalesDashboardClient";
-
-export default function AdminDashboardPage() {
-  return <DashboardClient />;
+export default function Page() {
+  return (
+    <Suspense>
+      <SalesDashboardClient />
+    </Suspense>
+  );
 }

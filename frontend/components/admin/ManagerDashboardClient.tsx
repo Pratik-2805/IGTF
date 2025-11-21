@@ -22,7 +22,7 @@ import { useEvents } from "@/hooks/useEvents";
 import { useCategories } from "@/hooks/useCategories";
 import { useGallery } from "@/hooks/useGallery";
 
-export default function DashboardClient() {
+export default function ManagerDashboardClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -80,9 +80,18 @@ export default function DashboardClient() {
         }
 
         if (activeTab === "categories") {
-            categoriesHook.editingItem
-                ? categoriesHook.editCategory(formData)
-                : categoriesHook.addCategory(formData);
+            const name = formData.name;
+            // Assuming the file input name is 'image' in the form
+            const file = formData.image && formData.image instanceof File ? formData.image : null;
+
+            if (!name) {
+                // Basic validation
+                console.error("Category name is required.");
+                return;
+            }
+
+            // Pass both the data object and the file object (if available)
+            categoriesHook.addCategory({ name }, file);
         }
 
         if (activeTab === "gallery") {
@@ -143,7 +152,6 @@ export default function DashboardClient() {
                     <CategoriesTab
                         categories={categoriesHook.categories}
                         addCategory={categoriesHook.addCategory}
-                        editCategory={categoriesHook.editCategory}
                         deleteCategory={categoriesHook.deleteCategory}
                         loading={categoriesHook.loading}
 
@@ -166,16 +174,15 @@ export default function DashboardClient() {
             {showModal && (
                 <Modal
                     title={
-                        eventsHook.editingItem ||
-                            categoriesHook.editingItem ||
-                            galleryHook.editingItem
+                        (eventsHook.editingItem || galleryHook.editingItem)
                             ? `Edit ${activeTab}`
                             : `Add new ${activeTab}`
                     }
+
                     onClose={() => {
                         setShowModal(false);
                         eventsHook.setEditingItem(null);
-                        categoriesHook.setEditingItem(null);
+                        // categoriesHook.setEditingItem(null); <-- REMOVED
                         galleryHook.setEditingItem(null);
                         galleryHook.setImageFile(null);
                     }}
@@ -243,12 +250,16 @@ export default function DashboardClient() {
                         {/* CATEGORY FORM (inline to avoid referencing CategoriesTab.Form) */}
                         {activeTab === "categories" && (
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                    Name
+                                </label>
                                 <input
                                     id="name"
                                     name="name"
                                     type="text"
-                                    defaultValue={(categoriesHook.editingItem as any)?.name || ""}
+                                    // Removed logic for default value from editingItem, now always blank for add
+                                    // If we are editing, we are always adding (since we disabled edit)
+                                    defaultValue={""}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                                 />
                             </div>

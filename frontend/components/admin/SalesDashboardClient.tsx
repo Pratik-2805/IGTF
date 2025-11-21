@@ -16,7 +16,7 @@ import VisitorsTab from "@/components/admin/VisitorsTab";
 import { useExhibitors } from "@/hooks/useExhibitors";
 import { useVisitors } from "@/hooks/useVisitors";
 
-export default function DashboardClient() {
+export default function SalesDashboardClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();

@@ -1,7 +1,12 @@
-"use client";
+import { Suspense } from "react";
+import ManagerDashboardClient from "@/components/admin/ManagerDashboardClient";
 
-import DashboardClient from "@/components/admin/ManagerDashboardClient";
 
-export default function AdminDashboardPage() {
-  return <DashboardClient />;
+
+export default function Page() {
+  return (
+    <Suspense>
+      <ManagerDashboardClient />
+    </Suspense>
+  );
 }
