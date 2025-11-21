@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.contrib.auth import get_user_model, authenticate
 from django.utils import timezone
 from django.conf import settings
+from .utils import upload_to_s3, delete_from_s3
 
 import random
 import uuid
@@ -404,21 +405,30 @@ class VisitorRegistrationViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    parser_classes = (MultiPartParser, FormParser)
     queryset = Category.objects.all().order_by('-created_at')
     serializer_class = CategorySerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        image = request.FILES.get("image")
-        if not image:
-            return Response({"detail": "Image required"}, status=400)
+    http_method_names = ['get', 'post', 'delete']
 
-        obj = Category.objects.create(
-            image=image,
-            name=request.data.get('name', '')
-        )
-        return Response({"url": obj.image.url})
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        file_obj = request.FILES.get("image")
+        if file_obj:
+            url = upload_to_s3(file_obj, folder="categories")
+            data["image"] = url
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        if instance.image:
+            delete_from_s3(instance.image)
+        instance.delete()
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -430,4 +440,43 @@ class EventViewSet(viewsets.ModelViewSet):
 class GalleryImageViewSet(viewsets.ModelViewSet):
     queryset = GalleryImage.objects.all().order_by('-created_at')
     serializer_class = GalleryImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        file_obj = request.FILES.get("image")
+        if file_obj:
+            url = upload_to_s3(file_obj, folder="gallery")
+            data["image"] = url
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+
+        file_obj = request.FILES.get("image")
+
+        if file_obj:
+            # delete old image
+            if instance.image:
+                delete_from_s3(instance.image)
+
+            # upload new one
+            url = upload_to_s3(file_obj, folder="gallery")
+            data["image"] = url
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        if instance.image:
+            delete_from_s3(instance.image)
+        instance.delete()

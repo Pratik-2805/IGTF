@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/utils/cropImage";
@@ -17,7 +17,6 @@ interface Category {
 interface CategoriesTabProps {
     categories: Category[];
     addCategory: (data: any, file: File | null) => void;
-    editCategory: (data: any, file: File | null) => void;
     deleteCategory: (id: number) => void;
     loading: boolean;
 }
@@ -25,13 +24,11 @@ interface CategoriesTabProps {
 export default function CategoriesTab({
     categories,
     addCategory,
-    editCategory,
     deleteCategory,
     loading
 }: CategoriesTabProps) {
 
     const [showModal, setShowModal] = useState(false);
-    const [editingItem, setEditingItem] = useState<Category | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
 
     // CROPPER STATE
@@ -43,7 +40,6 @@ export default function CategoriesTab({
 
     const closeModal = () => {
         setShowModal(false);
-        setEditingItem(null);
         setImageFile(null);
         setImageSrc(null);
     };
@@ -66,10 +62,7 @@ export default function CategoriesTab({
                 <h2 className="font-serif text-3xl">Manage Categories ({categories.length})</h2>
 
                 <button
-                    onClick={() => {
-                        setEditingItem(null);
-                        setShowModal(true);
-                    }}
+                    onClick={() => setShowModal(true)}
                     className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-all"
                 >
                     <Plus className="w-5 h-5" />
@@ -87,24 +80,12 @@ export default function CategoriesTab({
                                 {category.name}
                             </h3>
 
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => {
-                                        setEditingItem(category);
-                                        setShowModal(true);
-                                    }}
-                                    className="p-2 hover:bg-muted rounded-md"
-                                >
-                                    <Edit className="w-4 h-4" />
-                                </button>
-
-                                <button
-                                    onClick={() => deleteCategory(category.id)}
-                                    className="p-2 hover:bg-red-500/10 text-red-500 rounded-md"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => deleteCategory(category.id)}
+                                className="p-2 hover:bg-red-500/10 text-red-500 rounded-md"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
 
                         <p className="text-sm text-muted-foreground mt-3">{category.description}</p>
@@ -120,16 +101,14 @@ export default function CategoriesTab({
                 ))}
             </div>
 
-            {/* ⭐ MODAL */}
+            {/* ⭐ MODAL (Add Only) */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-background rounded-lg max-w-xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
 
                         {/* HEADER */}
                         <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-background">
-                            <h2 className="font-serif text-2xl">
-                                {editingItem ? "Edit Category" : "Add Category"}
-                            </h2>
+                            <h2 className="font-serif text-2xl">Add Category</h2>
 
                             <button onClick={closeModal} className="p-2 hover:bg-muted rounded-md">
                                 <X className="w-5 h-5" />
@@ -138,16 +117,13 @@ export default function CategoriesTab({
 
                         {/* FORM */}
                         <form
-                            onSubmit={(e) => {
+                            onSubmit={async (e) => {
                                 e.preventDefault();
+
                                 const fd = new FormData(e.currentTarget);
                                 const data = Object.fromEntries(fd.entries());
 
-                                if (editingItem) {
-                                    editCategory(data, imageFile);
-                                } else {
-                                    addCategory(data, imageFile);
-                                }
+                                addCategory(data, imageFile);
                                 closeModal();
                             }}
                             className="p-6 space-y-4"
@@ -159,7 +135,6 @@ export default function CategoriesTab({
                                 <input
                                     type="text"
                                     name="name"
-                                    defaultValue={editingItem?.name}
                                     required
                                     className="w-full px-4 py-2 rounded-md border border-border bg-background"
                                 />
@@ -171,7 +146,6 @@ export default function CategoriesTab({
                                 <input
                                     type="text"
                                     name="icon"
-                                    defaultValue={editingItem?.icon}
                                     required
                                     className="w-full px-4 py-2 rounded-md border border-border bg-background"
                                 />
@@ -195,16 +169,12 @@ export default function CategoriesTab({
                                                 setImageSrc(URL.createObjectURL(file));
                                                 setShowCropper(true);
                                             }}
-                                            required={!editingItem}
+                                            required
                                         />
                                     </label>
 
                                     <div className="flex-1 bg-white px-4 py-2 text-sm">
-                                        {imageFile
-                                            ? imageFile.name
-                                            : editingItem?.image
-                                                ? editingItem.image.split("/").pop()
-                                                : "No file chosen"}
+                                        {imageFile ? imageFile.name : "No file chosen"}
                                     </div>
                                 </div>
 
@@ -213,7 +183,7 @@ export default function CategoriesTab({
                                     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
                                         <div className="bg-white p-4 rounded-lg shadow-xl max-w-lg w-full">
 
-                                            <h3 className="text-lg font-semibold mb-3">Crop Image (3 :5)</h3>
+                                            <h3 className="text-lg font-semibold mb-3">Crop Image (3 : 5)</h3>
 
                                             <div className="relative w-full h-64 bg-black">
                                                 <Cropper
@@ -258,7 +228,6 @@ export default function CategoriesTab({
                                 <textarea
                                     name="description"
                                     rows={3}
-                                    defaultValue={editingItem?.description}
                                     required
                                     className="w-full px-4 py-2 rounded-md border border-border bg-background resize-none"
                                 />
@@ -278,7 +247,7 @@ export default function CategoriesTab({
                                     type="submit"
                                     className="flex-1 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90"
                                 >
-                                    {editingItem ? "Update" : "Add"}
+                                    Add
                                 </button>
                             </div>
 

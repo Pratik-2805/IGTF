@@ -58,18 +58,9 @@ class VisitorRegistrationSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'icon', 'image', 'image_url', 'created_at', 'updated_at']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
-        return None
-
+        fields = ['id', 'name', 'description', 'icon', 'image', 'created_at', 'updated_at']
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,17 +69,9 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class GalleryImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-
     class Meta:
         model = GalleryImage
-        fields = ['id', 'title', 'description', 'image', 'image_url', 'created_at', 'updated_at']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
-        return None
+        fields = ['id', 'title', 'description', 'image', 'type', 'display_order', 'created_at', 'updated_at']
 
 
 class UserSerializer(serializers.ModelSerializer):

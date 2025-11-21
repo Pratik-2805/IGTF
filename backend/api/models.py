@@ -118,7 +118,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     icon = models.CharField(max_length=10)
-    image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    image = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -167,7 +167,7 @@ class GalleryImage(models.Model):
     )
 
     title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='gallery/')
+    image = models.URLField(max_length=500, null=True, blank=True)
     description = models.TextField()
 
     # Restored fields

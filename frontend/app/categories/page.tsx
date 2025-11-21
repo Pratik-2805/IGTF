@@ -51,15 +51,12 @@ export default function CategoriesPage() {
         }
 
         // Map API data → frontend carousel format
-        const formatted = data.map((cat: CategoryData) => {
-          // convert "Home Décor" → "home-décor.webp"
-          const filename = cat.name.toLowerCase().replace(/ /g, "-") + ".webp";
+        const formatted = data.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          imageUrl: cat.image, // backend absolute URL
+        }));
 
-          return {
-            name: cat.name,
-            imageUrl: `/categories/${filename}`, // must exist in public/categories/
-          };
-        });
 
         setCategories(formatted);
       } catch (error) {
@@ -175,9 +172,8 @@ export default function CategoriesPage() {
                         alt={cat.name}
                         fill
                         sizes="300px"
-                        className={`object-cover rounded-2xl transition-all duration-700 ${
-                          isActive ? "brightness-100" : "brightness-75 blur-[1px]"
-                        }`}
+                        className={`object-cover rounded-2xl transition-all duration-700 ${isActive ? "brightness-100" : "brightness-75 blur-[1px]"
+                          }`}
                         onError={(e: any) => {
                           e.currentTarget.src = "/categories/default.webp"; // fallback image
                         }}

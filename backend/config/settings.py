@@ -148,17 +148,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ==============================================
 # AWS S3 STORAGE
 # ==============================================
-AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
-AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
-AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="")
-AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="eu-north-1")
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 
-AWS_S3_CUSTOM_DOMAIN = config(
-    "AWS_S3_CUSTOM_DOMAIN",
-    default=f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-)
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME")
+AWS_S3_CUSTOM_DOMAIN = config("AWS_S3_CUSTOM_DOMAIN")
+AWS_LOCATION = config("AWS_LOCATION")
 
-AWS_LOCATION = config("AWS_LOCATION", default="media")
 
 # Only enable S3 if bucket is provided
 if AWS_STORAGE_BUCKET_NAME:

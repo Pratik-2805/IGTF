@@ -8,9 +8,6 @@ export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // For editing inside the modal
-  const [editingItem, setEditingItem] = useState<Category | null>(null);
-
   // Fetch all categories
   const fetchCategories = useCallback(async () => {
     try {
@@ -31,13 +28,25 @@ export function useCategories() {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Add Category
-  const addCategory = async (data: any) => {
+  // ✅ ADD CATEGORY — with image upload (multipart/form-data)
+  const addCategory = async (data: any, file: File | null) => {
     try {
+      const form = new FormData();
+
+      form.append("name", data.name);
+      form.append("icon", data.icon);
+      form.append("description", data.description);
+
+      if (file) {
+        form.append("image", file); // sends file to S3 via Django
+      }
+
       const res = await fetch(URLS.CATEGORIES, {
         method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
+        headers: {
+          Authorization: getAuthHeaders().Authorization!, // NO content-type here
+        },
+        body: form,
       });
 
       if (!res.ok) throw new Error("Failed to create category");
@@ -49,27 +58,10 @@ export function useCategories() {
     }
   };
 
-  // Edit Category
-  const editCategory = async (data: any) => {
-    if (!editingItem) return;
+  // ❌ REMOVED EDIT FUNCTION COMPLETELY
+  // (You no longer need it and your UI should not call it)
 
-    try {
-      const res = await fetch(`${URLS.CATEGORIES}${editingItem.id}/`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error("Failed to update category");
-
-      toast.success("Category updated successfully!");
-      fetchCategories();
-    } catch (err) {
-      toast.error("Failed to update category.");
-    }
-  };
-
-  // Delete category
+  // ✅ DELETE CATEGORY
   const deleteCategory = async (id: number) => {
     if (!confirm("Are you sure you want to delete this category?")) return;
 
@@ -92,13 +84,8 @@ export function useCategories() {
     categories,
     loading,
 
-    editingItem,
-    setEditingItem,
-
     addCategory,
-    editCategory,
     deleteCategory,
-
     refetch: fetchCategories,
   };
 }
